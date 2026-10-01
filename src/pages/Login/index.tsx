@@ -6,6 +6,8 @@ import * as yup from "yup";
 
 import { Container, LoginContainer, Column, Spacing, Title } from "./styles";
 import { defaultValues, IFormLogin } from "./types";
+import { api } from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
 const schema = yup
   .object({
@@ -22,6 +24,8 @@ const schema = yup
   .required();
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const {
     handleSubmit,
     control,
@@ -33,13 +37,26 @@ const Login = () => {
     reValidateMode: "onChange",
   });
 
+  const onSubmit = async (formData: IFormLogin) => {
+    try {
+      const { data } = await api.get(`/users?email=${formData.email}&senha=${formData.password}`);
+      if (data.length === 1) {
+        navigate("/feed");
+      }else{
+        alert("Usuário ou senha inválidos");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar o formulário:", error);
+    }
+  };
+
   return (
     <Container>
       <LoginContainer>
         <Column>
           <Title>Login</Title>
           <Spacing />
-          <form onSubmit={handleSubmit((data) => console.log(data))} style={{ width: "100%" }}>
+          <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
           <Input
             name="email"
             placeholder="Email"
